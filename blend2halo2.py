@@ -61,7 +61,7 @@ bl_info = {
     'name': '2017/12/08 blend2halo2v2 TEST RELEASE',
     'author': 'Dave Barnes (Aerial Dave)',
     'version': (0, 2, 1),
-    'blender': (2, 79, 0),
+    'blender': (2, 80, 0),
     'location': 'File > Export > Halo 2 Asset (.ass)',
     'description': 'Import-Export Halo asset file (.ass)',
     'warning': '',
@@ -123,16 +123,15 @@ def get_materials_name_list(obj_list, inst_list):
     return materials_list
 
 def enable_all_layers():
-    for i in range(0,20):
-        bpy.context.scene.layers[i] = True
+    bpy.context.view_layer.layer_collection.children
 
 def mesh_tools(obj, triangulate, split):
     print('PRE-DUPLICATE OBJECT: ' + obj.name)
-    get_levelRoot().select = True
+    get_levelRoot().select_set(state = True)
     bpy.ops.object.mode_set(mode = 'OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
-    obj.select = True
-    bpy.context.scene.objects.active = obj
+    obj.select_set(state = True)
+    bpy.context.view_layer.objects.active = obj
     bpy.ops.object.duplicate(linked=False)
     bpy.context.active_object.name = bpy.context.active_object.name[:-4] + '_blend2h2export'
     new_obj = bpy.context.selected_objects[0]
@@ -164,7 +163,7 @@ def mesh_tools(obj, triangulate, split):
 
 def write_asset(context, filepath, triangulate_faces, split_flat):
     enable_all_layers()
-    bpy.context.scene.objects.active = get_levelRoot()
+    bpy.context.view_layer.objects.active = get_levelRoot()
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     dec0 = '0.0000000000'
@@ -220,7 +219,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         file.write(
         '\n\n;MATERIAL %s' % (materials_list.index(mat)) +
         '\n\"%s\"' % (mat) +
-        '\n\"%s\"' % (mat)
+        '\n\""'
         )
     
     #write objects
@@ -332,10 +331,10 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             )
         #objects_to_be_removed.append(obj)
     for obj in objects_to_be_removed:
-        obj.select = True
+        obj.select_set(state = True)
         bpy.ops.object.delete()
     blevelroot = bpy.data.objects['b_levelroot_blend2h2export']
-    blevelroot.select = True
+    blevelroot.select_set(state = True)
     bpy.ops.object.delete()
     file.close()
     return {'FINISHED'}
@@ -364,11 +363,11 @@ def menu_func_export(self, context):
 
 def register():
     bpy.utils.register_class(ExportH2Asset)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_class(ExportH2Asset)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 if __name__ == '__main__':
     register()
