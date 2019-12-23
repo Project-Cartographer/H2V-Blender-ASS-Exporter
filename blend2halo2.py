@@ -1,24 +1,22 @@
-#   BLEND2HALO2
+#   BLEND2HALO2V2TEST
 #
-#   Installation:   To properly install this addon to Blender, drop it in your
+#   Installation:   To properly install this addon to Blender, follow these steps:
 #
-#                   /.../Blender Foundation/Blender/<version>/scripts/addons/
+#                   With Blender open, press Ctrl + Alt + U to open User Preferences. 
+#                   
+#                   Then go to Add-ons > Install Add-on from File.... browse to open
 #
-#                   directory. Then in Blender, open a User Preferences panel,
+#                   this script.  Then check the box to the left of the blend2halo2
 #
-#                   select the Add-ons tab at the top, select the Import-Export
-#
-#                   category to the left, scroll to find Import-Export: blend2halo2,
-#
-#                   and check the box on the very right side of the label. Press
-#
-#                   the Save User Settings button at the bottom right if you
-#
-#                   would like the addon to be enabled on startup for Blender.
+#                   Import-Export script.
 #
 #   Description:    This script will export your file into a Halo 2 Asset file
 #
 #                   comatable with H2Tool.  
+#
+#                   THIS IS A TEST RELEASE.  ALWAYS SAVE A COPY OF YOUR WORK
+#
+#                   BEFORE RUNNING.
 #   
 #   Scene Setup:    Create a simple mesh object and name it "b_levelroot" (no
 #
@@ -26,11 +24,7 @@
 #
 #                   b_levelroot.  Then YOU MUST UV unwrap every mesh, including
 #
-#                   the b_levelroot object.  YOU MUST apply a material to every
-#
-#                   exported object, including the b_levelroot object.  Finally,
-#
-#                   YOU MUST convert all polygons to triangles.  Ounce you have
+#                   the b_levelroot object.  Ounce you have
 #
 #                   done all of this, go to File -> Export -> Halo 2 Asset.  If
 #
@@ -52,29 +46,22 @@
 #
 #   Credits         Big thanks to zekilk (cyboryxmen) for making the original
 #
-#                   HCE exporter script for Blender! I referenced it many
+#                   HCE exporter script! I referenced it many times while 
 #
-#                   times while making this!
+#                   making this!
 #
 #   Contact         Email me at: davefeedback1@gmail.com
 #
-#                   Post on forum.halomaps.org
+#   Disclaimer     THIS IS A TEST RELEASE.  ALWAYS SAVE A COPY OF YOUR WORK
 #
-#                   Post on blenderartists.org
+#                   BEFORE RUNNING.
 #
-#   Disclaimer     This script was never optimized to make it user friendly!
-#
-#                  It will export if you follow the instructions. Feel free
-#
-#                  to modify it and use it as you wish.
-
-
 
 bl_info = {
-    'name': 'blend2halo2',
-    'author': 'Dave Barnes',
-    'version': (0, 1, 1),
-    'blender': (2, 74, 0),
+    'name': '2017/11/10 blend2halo2v2 TEST RELEASE',
+    'author': 'Dave Barnes (Aerial Dave)',
+    'version': (0, 2, 0),
+    'blender': (2, 79, 0),
     'location': 'File > Export > Halo 2 Asset (.ass)',
     'description': 'Import-Export Halo asset file (.ass)',
     'warning': '',
@@ -135,18 +122,80 @@ def get_materials_name_list(obj_list, inst_list):
                 materials_list.append(mat.name)
     return materials_list
 
-def write_asset(context, filepath):
+def enable_all_layers():
+    for i in range(0,20):
+        bpy.context.scene.layers[i] = True
+
+def mesh_tools(obj, triangulate, split):
+    print('PRE-DUPLICATE OBJECT: ' + obj.name)
+    bpy.ops.object.mode_set(mode = 'OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select = True
+    bpy.context.scene.objects.active = obj
+    bpy.ops.object.duplicate(linked=False)
+    bpy.context.active_object.name = bpy.context.active_object.name[:-4] + '_blend2h2export'
+    new_obj = bpy.context.selected_objects[0]
+    print('DUPLICATE OBJECT: ' + new_obj.name)
+    bpy.ops.object.mode_set(mode = 'EDIT')
+    if triangulate:
+        bpy.ops.mesh.select_all(action = 'SELECT')
+        bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+    if split:
+        bpy.ops.mesh.select_mode(type="FACE")
+        bpy.ops.mesh.select_all(action = 'DESELECT')
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        for poly in new_obj.data.polygons:
+            if poly.use_smooth:
+                poly.select = True
+        bpy.ops.object.mode_set(mode = 'EDIT')
+
+        try:
+            bpy.ops.mesh.separate(type='SELECTED')
+        except:
+            pass
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        act = bpy.context.active_object
+        act.modifiers.new(name='edgesplit', type='EDGE_SPLIT')
+        #act.modifiers['edgesplit'].split_angle = 30
+        bpy.ops.object.modifier_apply(apply_as='DATA', modifier='edgesplit')
+        bpy.ops.object.join()
+    return bpy.context.active_object #.name[:-15]
+
+def write_asset(context, filepath, triangulate_faces, split_flat):
+    enable_all_layers()
     bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
     dec0 = '0.0000000000'
     dec1 = '1.0000000000'
-    level_root = get_levelRoot()
+    level_root = mesh_tools(
+            obj=get_levelRoot(),
+            triangulate=triangulate_faces,
+            split=split_flat
+            )
     object_list = [level_root]
     instance_geometry_list = []
-    for child in get_child_list(level_root):
+    for child in get_child_list(get_levelRoot()):
         if child.name[-2:].isdigit() == False:
-            object_list.append(child)
+            print('loop: ' + child.name)
+            new_child = mesh_tools(
+            obj=child,
+            triangulate=triangulate_faces,
+            split=split_flat
+            )
+            object_list.append(new_child)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.select_all(action='DESELECT')
         else:
-            instance_geometry_list.append(child)
+            print('instanced loop: ' + child.name)
+            new_child = mesh_tools(
+            obj=child,
+            triangulate=triangulate_faces,
+            split=split_flat
+            )
+            object_list.append(new_child)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.select_all(action='DESELECT')
+            instance_geometry_list.append(new_child)
     materials_list = get_materials_name_list(object_list, instance_geometry_list)
     
     file = open(filepath, 'w',)
@@ -224,7 +273,7 @@ def write_asset(context, filepath):
                     )
     
     object_list.remove(object_list[0])
-    
+    objects_to_be_removed = []
     #write object instances
     file.write(
         '\n\n;### INSTANCES ####\n' +
@@ -235,7 +284,7 @@ def write_asset(context, filepath):
         file.write(
             '\n\n;INSTANCE %s' % (object_list.index(obj) + 1) +
             '\n%s' % (object_list.index(obj) +1) +
-            '\n\"%s\"' % (obj.name) +
+            '\n\"%s\"' % (obj.name[:-15]) +
             '\n%s' % (object_list.index(obj) +1) +
             '\n0' +
             '\n0' +
@@ -245,12 +294,13 @@ def write_asset(context, filepath):
             '\n{0[1]:0.10f}\t{0[2]:0.10f}\t{0[3]:0.10f}\t{0[0]:0.10f}'.format(obj.rotation_euler.to_quaternion()) +
             '\n%s\t%s\t%s' % (dec0, dec0, dec0) +
             '\n%s' % (dec1)
-            )
+            ) 
+        objects_to_be_removed.append(obj)
     for obj in instance_geometry_list:
         file.write(
             '\n\n;INSTANCE %s' % (len(object_list) + instance_geometry_list.index(obj) + 1) +
-            '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-2]]) +1) +
-            '\n\"%s\"' % (obj.name) +
+            '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-15] + '_blend2h2export']) +1) +
+            '\n\"%s\"' % (obj.name[0:-15]) +
             '\n%s' % (len(object_list) + instance_geometry_list.index(obj) + 1) +
             '\n0' +
             '\n0' +
@@ -261,21 +311,34 @@ def write_asset(context, filepath):
             '\n%s\t%s\t%s' % (dec0, dec0, dec0) +
             '\n%s' % (dec1)
             )
+        objects_to_be_removed.append(obj)
+    for obj in objects_to_be_removed:
+        obj.select = True
+        bpy.ops.object.delete() 
     file.close()
     return {'FINISHED'}
 
 class ExportH2Asset(Operator, ExportHelper):
     bl_idname = 'export_halo2.export'
     bl_label = 'Export Halo 2 Asset File (.ass)'
-    
+    triangulate_faces = bpy.props.BoolProperty(
+        name ="Triangulate faces",
+        description = "Automatically triangulate all faces (recommended)",
+        default = True,
+        )
+    split_flat = bpy.props.BoolProperty(
+        name ="Split edges of flat shaded faces",
+        description = "Automatically split edges of flat shaded faces (recommended)",
+        default = True,
+        )
     filename_ext = '.ass'
     filter_glob = StringProperty(default='*.ass', options={'HIDDEN'})
     
     def execute(self, context):
-        return write_asset(context, self.filepath)
+        return write_asset(context, self.filepath, triangulate_faces=self.triangulate_faces, split_flat=self.split_flat)
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset')
+    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset (2017/11/10 TEST RELEASE)')
 
 def register():
     bpy.utils.register_class(ExportH2Asset)
@@ -287,3 +350,4 @@ def unregister():
 
 if __name__ == '__main__':
     register()
+
