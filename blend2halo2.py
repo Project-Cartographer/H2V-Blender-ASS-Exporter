@@ -126,6 +126,26 @@ def get_materials_name_list(obj_list, inst_list):
 def enable_all_layers():
     bpy.context.view_layer.layer_collection.children
 
+def unhide_all_collections():
+    for collection_viewport in bpy.context.view_layer.layer_collection.children:
+        collection_viewport.hide_viewport = False
+    for collection_hide in bpy.data.collections:    
+        collection_hide.hide_select = False
+        collection_hide.hide_viewport = False
+        collection_hide.hide_render = False            
+
+def unhide_all_objects():
+    for collection in bpy.data.collections:
+        for obj in collection.all_objects:
+            if obj.hide_set:
+                obj.hide_set(False)
+            if obj.hide_select:            
+                obj.hide_select = False
+            if obj.hide_viewport:
+                obj.hide_viewport = False
+            if obj.hide_render:
+                obj.hide_render = False
+
 def mesh_tools(obj, triangulate, split):
     print('PRE-DUPLICATE OBJECT: ' + obj.name)
     get_levelRoot().select_set(state = True)
@@ -164,6 +184,8 @@ def mesh_tools(obj, triangulate, split):
 
 def write_asset(context, filepath, triangulate_faces, split_flat):
     enable_all_layers()
+    unhide_all_collections()
+    unhide_all_objects()
     bpy.context.view_layer.objects.active = get_levelRoot()
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
@@ -188,15 +210,26 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
         else:
-            print('instanced loop: ' + child.name)
-            #new_child = mesh_tools(
-            #obj=child,
-            #triangulate=triangulate_faces,
-            #split=split_flat
-            #)
-            instance_geometry_list.append(child)
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.select_all(action='DESELECT')
+            if child.name.startswith("%") == True:
+                print('instanced loop: ' + child.name)
+                #new_child = mesh_tools(
+                #obj=child,
+                #triangulate=triangulate_faces,
+                #split=split_flat
+                #)
+                instance_geometry_list.append(child)
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.select_all(action='DESELECT')
+            else:
+                print('loop: ' + child.name)
+                new_child = mesh_tools(
+                obj=child,
+                triangulate=triangulate_faces,
+                split=split_flat
+                )
+                object_list.append(new_child)
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.select_all(action='DESELECT')             
     materials_list = get_materials_name_list(object_list, instance_geometry_list)
     
     file = open(filepath, 'w',)
@@ -265,9 +298,10 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             '\n{0}'.format(len(mesh.polygons))
             )
         for poly in mesh.polygons:
-            file.write(
-                    '\n{0}'.format(materials_list.index(mesh.materials[poly.material_index].name))
-                    )
+            if len(obj.data.materials) == 0:
+                file.write('\n{0}'.format(-1))
+            else:
+                file.write('\n{0}'.format(materials_list.index(mesh.materials[poly.material_index].name)))
             for i in poly.loop_indices:
                 file.write(
                     '\n{0}'.format(i)
