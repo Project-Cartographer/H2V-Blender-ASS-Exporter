@@ -74,8 +74,8 @@ import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
-import os
-import getpass
+from os import environ
+from getpass import getuser
 import mathutils
 
 #Define functions and classes
@@ -207,8 +207,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         '2\n' +
         '\"Blender\"\n' +
         '\"%s.%s\"\n' % (bpy.app.version[0], bpy.app.version[1]) +
-        '\"%s\"\n' % (getpass.getuser()) +
-        '\"%s\"\n' % (os.environ['COMPUTERNAME'])
+        '\"%s\"\n' % (getuser()) +
+        '\"%s\"\n' % (environ['COMPUTERNAME'])
         )
     
     #write materials
@@ -333,7 +333,10 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         #objects_to_be_removed.append(obj)
     for obj in objects_to_be_removed:
         obj.select = True
-        bpy.ops.object.delete() 
+        bpy.ops.object.delete()
+    blevelroot = bpy.data.objects['b_levelroot_blend2h2export']
+    blevelroot.select = True
+    bpy.ops.object.delete()
     file.close()
     return {'FINISHED'}
 
