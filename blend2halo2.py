@@ -36,7 +36,7 @@
 #
 #                   symbol in front of the name, and name the instances with
 #
-#                   the reference name (with %) then two numbers! So
+#                   the reference name (with %) then two or three numbers! So
 #
 #                   instances of %tree would be %tree01, %tree02, and so on!
 #
@@ -58,9 +58,9 @@
 #
 
 bl_info = {
-    'name': '2017/11/10 blend2halo2v2 TEST RELEASE',
+    'name': '2017/12/08 blend2halo2v2 TEST RELEASE',
     'author': 'Dave Barnes (Aerial Dave)',
-    'version': (0, 2, 0),
+    'version': (0, 2, 1),
     'blender': (2, 79, 0),
     'location': 'File > Export > Halo 2 Asset (.ass)',
     'description': 'Import-Export Halo asset file (.ass)',
@@ -128,6 +128,7 @@ def enable_all_layers():
 
 def mesh_tools(obj, triangulate, split):
     print('PRE-DUPLICATE OBJECT: ' + obj.name)
+    get_levelRoot().select = True
     bpy.ops.object.mode_set(mode = 'OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     obj.select = True
@@ -163,6 +164,7 @@ def mesh_tools(obj, triangulate, split):
 
 def write_asset(context, filepath, triangulate_faces, split_flat):
     enable_all_layers()
+    bpy.context.scene.objects.active = get_levelRoot()
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     dec0 = '0.0000000000'
@@ -187,15 +189,14 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             bpy.ops.object.select_all(action='DESELECT')
         else:
             print('instanced loop: ' + child.name)
-            new_child = mesh_tools(
-            obj=child,
-            triangulate=triangulate_faces,
-            split=split_flat
-            )
-            object_list.append(new_child)
+            #new_child = mesh_tools(
+            #obj=child,
+            #triangulate=triangulate_faces,
+            #split=split_flat
+            #)
+            instance_geometry_list.append(child)
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
-            instance_geometry_list.append(new_child)
     materials_list = get_materials_name_list(object_list, instance_geometry_list)
     
     file = open(filepath, 'w',)
@@ -297,10 +298,28 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             ) 
         objects_to_be_removed.append(obj)
     for obj in instance_geometry_list:
+        print(obj.name)
         file.write(
-            '\n\n;INSTANCE %s' % (len(object_list) + instance_geometry_list.index(obj) + 1) +
-            '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-15] + '_blend2h2export']) +1) +
-            '\n\"%s\"' % (obj.name[0:-15]) +
+            '\n\n;INSTANCE %s' % (len(object_list) + instance_geometry_list.index(obj) + 1)
+            )
+        if obj.name[-3].isdigit() == False:
+            print('Instanced Format: 01')
+            file.write(
+                '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-2] + '_blend2h2export']) +1)
+                )
+        else:
+            if obj.name[-4] == '.':
+                print('Instanced Format: .001')
+                file.write(
+                '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-4] + '_blend2h2export']) +1)
+                )
+            else:
+                print('Instanced Format: 001')
+                file.write(
+                '\n%s' % (object_list.index(bpy.data.objects[obj.name[0:-3] + '_blend2h2export']) +1)
+                )
+        file.write(
+            '\n\"%s\"' % (obj.name) +
             '\n%s' % (len(object_list) + instance_geometry_list.index(obj) + 1) +
             '\n0' +
             '\n0' +
@@ -311,7 +330,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             '\n%s\t%s\t%s' % (dec0, dec0, dec0) +
             '\n%s' % (dec1)
             )
-        objects_to_be_removed.append(obj)
+        #objects_to_be_removed.append(obj)
     for obj in objects_to_be_removed:
         obj.select = True
         bpy.ops.object.delete() 
@@ -338,7 +357,7 @@ class ExportH2Asset(Operator, ExportHelper):
         return write_asset(context, self.filepath, triangulate_faces=self.triangulate_faces, split_flat=self.split_flat)
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset (2017/11/10 TEST RELEASE)')
+    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset (2017/12/08 TEST RELEASE)')
 
 def register():
     bpy.utils.register_class(ExportH2Asset)
