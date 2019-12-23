@@ -58,7 +58,7 @@
 #
 
 bl_info = {
-    'name': '2017/12/08 blend2halo2v2 TEST RELEASE',
+    'name': 'Blend2Halo2',
     'author': 'Dave Barnes (Aerial Dave)',
     'version': (0, 2, 1),
     'blender': (2, 80, 0),
@@ -71,6 +71,7 @@ bl_info = {
 #Import relavant modules
 
 import bpy
+import socket
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
@@ -207,7 +208,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         '\"Blender\"\n' +
         '\"%s.%s\"\n' % (bpy.app.version[0], bpy.app.version[1]) +
         '\"%s\"\n' % (getuser()) +
-        '\"%s\"\n' % (environ['COMPUTERNAME'])
+        '\"%s\"\n' % (socket.gethostname())
         )
     
     #write materials
@@ -359,7 +360,7 @@ class ExportH2Asset(Operator, ExportHelper):
         return write_asset(context, self.filepath, triangulate_faces=self.triangulate_faces, split_flat=self.split_flat)
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset (2017/12/08 TEST RELEASE)')
+    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset')
 
 def register():
     bpy.utils.register_class(ExportH2Asset)
