@@ -73,8 +73,8 @@ bl_info = {
 import bpy
 import socket
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty
-from bpy.types import Operator
+from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
+from bpy.types import Operator, Panel, PropertyGroup
 from os import environ
 from getpass import getuser
 import mathutils
@@ -229,7 +229,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 )
                 object_list.append(new_child)
                 bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.select_all(action='DESELECT')             
+                bpy.ops.object.select_all(action='DESELECT') 
     materials_list = get_materials_name_list(object_list, instance_geometry_list)
     
     file = open(filepath, 'w',)
@@ -262,53 +262,98 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         '\n%s' % (str(len(object_list)))
         )
     for obj in object_list:
-        mesh = obj.data
-        vertlist = []
-        facelist = []
-        file.write(
-            '\n\n;OBJECT %s' %  (object_list.index(obj)) +
-            '\n\"%s\"' % (obj.type) +
-            '\n\"\"' * 2
-            )
-        
-        #write vertices and uv data
-        vertcount = 0
-        for poly in mesh.polygons:
-            for i in poly.loop_indices:
-                vertcount += 1
-        file.write(
-            '\n{0}'.format(len(mesh.polygons) * 3)
-            )
-        
-        for poly in mesh.polygons:
-            for i in poly.loop_indices:
-                file.write(
-                '\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(mesh.vertices[mesh.loops[i].vertex_index].co) +
-                '\n{0:0.10f}\t{1:0.10f}\t{2:0.10f}'.format(
-                    mesh.vertices[mesh.loops[i].vertex_index].normal[0] + 0,
-                    mesh.vertices[mesh.loops[i].vertex_index].normal[1] + 0,
-                    mesh.vertices[mesh.loops[i].vertex_index].normal[2] + 0) +
-                '\n0' +
-                '\n1' +
-                '\n{0[0]:0.10f}\t{0[1]:0.10f}'.format(mesh.uv_layers.active.data[mesh.loops[i].index].uv)
+        if obj.ass.Type == 'MESH':
+            mesh = obj.data
+            vertlist = []
+            facelist = []
+            file.write(     
+                '\n\n;OBJECT %s' %  (object_list.index(obj)) +
+                '\n\"%s\"' % (obj.ass.Type) +
+                '\n\"\"' * 2
                 )
+        
+            #write vertices and uv data
+            vertcount = 0
+            for poly in mesh.polygons:
+                for i in poly.loop_indices:
+                    vertcount += 1
+            file.write(
+                '\n{0}'.format(len(mesh.polygons) * 3)
+                )
+        
+            for poly in mesh.polygons:
+                for i in poly.loop_indices:
+                    file.write(
+                    '\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(mesh.vertices[mesh.loops[i].vertex_index].co) +
+                    '\n{0:0.10f}\t{1:0.10f}\t{2:0.10f}'.format(
+                        mesh.vertices[mesh.loops[i].vertex_index].normal[0] + 0,
+                        mesh.vertices[mesh.loops[i].vertex_index].normal[1] + 0,
+                        mesh.vertices[mesh.loops[i].vertex_index].normal[2] + 0) +
+                    '\n0' +
+                    '\n1' +
+                    '\n{0[0]:0.10f}\t{0[1]:0.10f}'.format(mesh.uv_layers.active.data[mesh.loops[i].index].uv)
+                    )
                     
-        #write polygons
-        file.write(
-            '\n{0}'.format(len(mesh.polygons))
-            )
-        for poly in mesh.polygons:
+            #write polygons
+            file.write(
+                '\n{0}'.format(len(mesh.polygons))
+                )
+            for poly in mesh.polygons:
+                if len(obj.data.materials) == 0:
+                    file.write('\n{0}'.format(-1))
+                else:
+                    file.write('\n{0}'.format(materials_list.index(mesh.materials[poly.material_index].name)))
+                for i in poly.loop_indices:
+                    file.write(
+                        '\n{0}'.format(i)
+                        )
+
+        elif obj.ass.Type == 'SPHERE':
+            mesh = obj.data
+            file.write(     
+                '\n\n;OBJECT %s' %  (object_list.index(obj)) +
+                '\n\"%s\"' % (obj.ass.Type) +
+                '\n\"\"' * 2
+                )
             if len(obj.data.materials) == 0:
                 file.write('\n{0}'.format(-1))
             else:
-                file.write('\n{0}'.format(materials_list.index(mesh.materials[poly.material_index].name)))
-            for i in poly.loop_indices:
-                file.write(
-                    '\n{0}'.format(i)
-                    )
-    
+                file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))                 
+            
+            
+        elif obj.ass.Type == 'BOX':
+            mesh = obj.data        
+            file.write(     
+                '\n\n;OBJECT %s' %  (object_list.index(obj)) +
+                '\n\"%s\"' % (obj.ass.Type) +
+                '\n\"\"' * 2
+                )
+            if len(obj.data.materials) == 0:
+                file.write('\n{0}'.format(-1))
+            else:
+                file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name)))
+            file.write('\n{0:0.10f}'.format(obj.dimensions[0]/2))   
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
+            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))   
+            
+        elif obj.ass.Type == 'PILL':
+            mesh = obj.data       
+            file.write(     
+                '\n\n;OBJECT %s' %  (object_list.index(obj)) +
+                '\n\"%s\"' % (obj.ass.Type) +
+                '\n\"\"' * 2
+                )
+            if len(obj.data.materials) == 0:
+                file.write('\n{0}'.format(-1))
+            else:
+                file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]))
+            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))               
+            
     object_list.remove(object_list[0])
-    objects_to_be_removed = []
+    objects_to_be_removed = []     
+        
     #write object instances
     file.write(
         '\n\n;### INSTANCES ####\n' +
@@ -366,13 +411,53 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             )
         #objects_to_be_removed.append(obj)
     for obj in objects_to_be_removed:
-        obj.select_set(state = True)
+        obj.select_set(True)
         bpy.ops.object.delete()
     blevelroot = bpy.data.objects['b_levelroot_blend2h2export']
     blevelroot.select_set(state = True)
     bpy.ops.object.delete()
     file.close()
     return {'FINISHED'}
+
+class ASS_ObjectProps(Panel):
+    bl_label = "Object Properties"
+    bl_idname = "object_panel"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "object"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    object_proprties: BoolProperty(
+        name = "Primitive Type",
+        default = True,
+        description = "How the object is handled on export"
+        )
+
+    def draw(self, context):
+        layout = self.layout      
+        layout.use_property_split = True
+
+        box = layout.box()
+        box.label(text = "Primitive Type")
+
+        flow = box.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        obj = context.object
+        ass = obj.ass
+        
+        row = box.row()
+        row.prop(ass, "Type")
+
+class ASS_ObjectPropertiesGroup(PropertyGroup):
+    Type : EnumProperty(
+        name="Dropdown:",
+        description="Apply Data to attribute.",
+        items=[ ('MESH', "MESH", ""),
+                ('SPHERE', "SPHERE", ""),
+                ('BOX', "BOX", ""),
+                ('PILL', "PILL", ""),
+               ]
+        )        
 
 class ExportH2Asset(Operator, ExportHelper):
     bl_idname = 'export_halo2.export'
@@ -392,17 +477,27 @@ class ExportH2Asset(Operator, ExportHelper):
     
     def execute(self, context):
         return write_asset(context, self.filepath, triangulate_faces=self.triangulate_faces, split_flat=self.split_flat)
+        
+classes = (
+    ASS_ObjectPropertiesGroup,
+    ASS_ObjectProps,
+    ExportH2Asset
+)      
 
 def menu_func_export(self, context):
     self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset')
 
-def register():
-    bpy.utils.register_class(ExportH2Asset)
+def register(): 
+    for cls in classes:
+        bpy.utils.register_class(cls)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.Object.ass = PointerProperty(type=ASS_ObjectPropertiesGroup, name="ASS Properties", description="ASS Object properties")
 
 def unregister():
-    bpy.utils.unregister_class(ExportH2Asset)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    del bpy.types.Object.ass
 
 if __name__ == '__main__':
     register()
