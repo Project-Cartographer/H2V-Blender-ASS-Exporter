@@ -420,14 +420,14 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
     return {'FINISHED'}
 
 class ASS_ObjectProps(Panel):
-    bl_label = "Object Properties"
-    bl_idname = "object_panel"
+    bl_label = "ASS Object Properties"
+    bl_idname = "ass_object_panel"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
     bl_options = {"DEFAULT_CLOSED"}
 
-    object_proprties: BoolProperty(
+    ass_object_proprties: BoolProperty(
         name = "Primitive Type",
         default = True,
         description = "How the object is handled on export"
