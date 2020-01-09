@@ -62,8 +62,8 @@ bl_info = {
     'author': 'Dave Barnes (Aerial Dave)',
     'version': (0, 2, 1),
     'blender': (2, 80, 0),
-    'location': 'File > Export > Halo 2 Asset (.ass)',
-    'description': 'Import-Export Halo asset file (.ass)',
+    'location': 'File > Export > Halo 2 Amalgam Scene Specification (.ass)',
+    'description': 'Import-Export Halo 2 Amalgam Scene Specification file (.ass)',
     'warning': '',
     'category': 'Import-Export'}
     
@@ -135,16 +135,16 @@ def unhide_all_collections():
         collection_hide.hide_render = False            
 
 def unhide_all_objects():
-    for collection in bpy.data.collections:
-        for obj in collection.all_objects:
-            if obj.hide_set:
-                obj.hide_set(False)
-            if obj.hide_select:            
-                obj.hide_select = False
-            if obj.hide_viewport:
-                obj.hide_viewport = False
-            if obj.hide_render:
-                obj.hide_render = False
+    context = bpy.context
+    for obj in context.view_layer.objects:
+        if obj.hide_set:
+            obj.hide_set(False)
+        if obj.hide_select:            
+            obj.hide_select = False
+        if obj.hide_viewport:
+            obj.hide_viewport = False
+        if obj.hide_render:
+            obj.hide_render = False
 
 def mesh_tools(obj, triangulate, split):
     print('PRE-DUPLICATE OBJECT: ' + obj.name)
@@ -421,7 +421,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
 
 class ASS_ObjectProps(Panel):
     bl_label = "ASS Object Properties"
-    bl_idname = "ass_object_panel"
+    bl_idname = "ASS_PT_ASSObjectPanel"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
@@ -460,20 +460,21 @@ class ASS_ObjectPropertiesGroup(PropertyGroup):
         )        
 
 class ExportH2Asset(Operator, ExportHelper):
+    """Write an ASS file"""
     bl_idname = 'export_halo2.export'
-    bl_label = 'Export Halo 2 Asset File (.ass)'
-    triangulate_faces = bpy.props.BoolProperty(
+    bl_label = 'Export Halo 2 Amalgam Scene Specification (.ass)'
+    triangulate_faces: bpy.props.BoolProperty(
         name ="Triangulate faces",
         description = "Automatically triangulate all faces (recommended)",
         default = True,
         )
-    split_flat = bpy.props.BoolProperty(
+    split_flat: bpy.props.BoolProperty(
         name ="Split edges of flat shaded faces",
         description = "Automatically split edges of flat shaded faces (recommended)",
         default = True,
         )
     filename_ext = '.ass'
-    filter_glob = StringProperty(default='*.ass', options={'HIDDEN'})
+    filter_glob: StringProperty(default='*.ass', options={'HIDDEN'})
     
     def execute(self, context):
         return write_asset(context, self.filepath, triangulate_faces=self.triangulate_faces, split_flat=self.split_flat)
@@ -485,7 +486,7 @@ classes = (
 )      
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Asset')
+    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Amalgam Scene Specification file (.ass)')
 
 def register(): 
     for cls in classes:
