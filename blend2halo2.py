@@ -60,10 +60,10 @@
 bl_info = {
     'name': 'Blend2Halo2',
     'author': 'Dave Barnes (Aerial Dave)',
-    'version': (0, 2, 1),
+    'version': (0, 2, 5),
     'blender': (2, 80, 0),
     'location': 'File > Export > Halo 2 Amalgam Scene Specification (.ass)',
-    'description': 'Import-Export Halo 2 Amalgam Scene Specification file (.ass)',
+    'description': 'Import-Export Halo 2 Amalgam Scene Specification File (.ass)',
     'warning': '',
     'category': 'Import-Export'}
     
@@ -333,9 +333,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name)))
-            file.write('\n{0:0.10f}'.format(obj.dimensions[0]/2))   
-            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
-            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))   
+            file.write('\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(obj.dimensions/2))    
             
         elif obj.ass.Type == 'PILL':
             mesh = obj.data       
@@ -348,15 +346,15 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
-            file.write('\n{0:0.10f}'.format(obj.dimensions[1]))
-            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))               
+            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
             
     object_list.remove(object_list[0])
     objects_to_be_removed = []     
         
     #write object instances
     file.write(
-        '\n\n;### INSTANCES ####\n' +
+        '\n\n;### INSTANCES ###\n' +
         str(len(object_list) + len(instance_geometry_list) + 1) +
         '\n\n' + get_sceneRoot()
         )
@@ -462,7 +460,7 @@ class ASS_ObjectPropertiesGroup(PropertyGroup):
 class ExportH2Asset(Operator, ExportHelper):
     """Write an ASS file"""
     bl_idname = 'export_halo2.export'
-    bl_label = 'Export Halo 2 Amalgam Scene Specification (.ass)'
+    bl_label = 'Export Halo 2 Amalgam Scene Specification File (.ass)'
     triangulate_faces: bpy.props.BoolProperty(
         name ="Triangulate faces",
         description = "Automatically triangulate all faces (recommended)",
@@ -486,7 +484,7 @@ classes = (
 )      
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Amalgam Scene Specification file (.ass)')
+    self.layout.operator(ExportH2Asset.bl_idname, text='Halo 2 Amalgam Scene Specification (.ass)')
 
 def register(): 
     for cls in classes:
