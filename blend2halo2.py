@@ -236,10 +236,10 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
     file.write(
         ';### HEADER ###\n' +
         '2\n' +
-        '\"Blender\"\n' +
+        '\"BLENDER\"\n' +
         '\"%s.%s\"\n' % (bpy.app.version[0], bpy.app.version[1]) +
         '\"%s\"\n' % (getuser()) +
-        '\"%s\"\n' % (socket.gethostname())
+        '\"%s\"\n' % (socket.gethostname().upper())
         )
     
     #write materials
@@ -317,7 +317,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
-                file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))                 
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))                 
             
             
         elif obj.ass.Type == 'BOX':
@@ -328,10 +328,13 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 '\n\"\"' * 2
                 )
             if len(obj.data.materials) == 0:
-                file.write('\n{0}'.format(-1))
+                file.write('\n{0}'.format(-1))                
             else:
-                file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name)))
-                file.write('\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(obj.dimensions/2))    
+                file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name)))          
+            scale_x = obj.dimensions[0]/2
+            scale_y = obj.dimensions[1]/2
+            scale_z = obj.dimensions[2]/2      
+            file.write('\n%0.10f\t%0.10f\t%0.10f' % (scale_x, scale_y, scale_z))
             
         elif obj.ass.Type == 'PILL':
             mesh = obj.data       
@@ -344,8 +347,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
-                file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
-                file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
+            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
+            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
             
     object_list.remove(object_list[0])
     objects_to_be_removed = []     
