@@ -40,9 +40,7 @@
 #
 #                   instances of %tree would be %tree01, %tree02, and so on!
 #
-#                   (no commas). Be careful! Any object name with two numbers
-#
-#                   at the end will be refered as an instance object!
+#                   (no commas).
 #
 #   Credits         Big thanks to zekilk (cyboryxmen) for making the original
 #
@@ -73,7 +71,7 @@ bl_info = {
 import bpy
 import socket
 from bpy_extras.io_utils import ExportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty, IntProperty, StringProperty, PointerProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty
 from bpy.types import Operator, Panel, PropertyGroup
 from os import environ
 from getpass import getuser
@@ -333,7 +331,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name)))
-            file.write('\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(obj.dimensions/2))    
+                file.write('\n{0[0]:0.10f}\t{0[1]:0.10f}\t{0[2]:0.10f}'.format(obj.dimensions/2))    
             
         elif obj.ass.Type == 'PILL':
             mesh = obj.data       
@@ -460,7 +458,7 @@ class ASS_ObjectPropertiesGroup(PropertyGroup):
 class ExportH2Asset(Operator, ExportHelper):
     """Write an ASS file"""
     bl_idname = 'export_halo2.export'
-    bl_label = 'Export Halo 2 Amalgam Scene Specification File (.ass)'
+    bl_label = 'Export ASS File'
     triangulate_faces: bpy.props.BoolProperty(
         name ="Triangulate faces",
         description = "Automatically triangulate all faces (recommended)",
