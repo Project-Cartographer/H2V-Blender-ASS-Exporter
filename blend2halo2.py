@@ -317,7 +317,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
-            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))                 
+                file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))                 
             
             
         elif obj.ass.Type == 'BOX':
@@ -344,8 +344,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
                 file.write('\n{0}'.format(-1))
             else:
                 file.write('\n{0}'.format(materials_list.index(mesh.materials[mesh.polygons[0].material_index].name))) 
-            file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
-            file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
+                file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
+                file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))               
             
     object_list.remove(object_list[0])
     objects_to_be_removed = []     
