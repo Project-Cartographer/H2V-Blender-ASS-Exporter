@@ -21,7 +21,7 @@
 #   Scene Setup:    Create a simple mesh object and name it "b_levelroot" (no
 #
 #                   quotes).  Parent all of the mesh objects directly to b_levelroot.
-
+#
 #                   Once you have done all of this, go to File -> Export -> Halo 2 Amalgam Scene Specification (.ass).
 #
 #                   If succesfull, this script will export an .ASS file compatible
@@ -270,11 +270,11 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
         )
 
     for obj in object_list:
-        xrefpath = bpy.path.abspath(obj.ass.xrefpath)
-        if xrefpath != "":
-            xrefpath_filename = obj.name[:-15]
+        xref_filepath = bpy.path.abspath(obj.ass.xrefpath)
+        if xref_filepath != "":
+            xref_objectname = obj.name[:-15]
         else:
-            xrefpath_filename = ""
+            xref_objectname = ""
         if obj.ass.Type == 'MESH':
             mesh = obj.data
             vertlist = []
@@ -282,8 +282,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             file.write(
                 '\n\n;OBJECT %s' %  (object_list.index(obj)) +
                 '\n\"%s\"' % (obj.ass.Type) +
-                '\n"%s"' % (xrefpath) +
-                '\n"%s"' % (xrefpath_filename)          
+                '\n"%s"' % (xref_filepath) +
+                '\n"%s"' % (xref_objectname)          
                 )
 
             #write vertices and uv data
@@ -331,8 +331,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             file.write(
                 '\n\n;OBJECT %s' %  (object_list.index(obj)) +
                 '\n\"%s\"' % (obj.ass.Type) +
-                '\n"%s"' % (xrefpath) +
-                '\n"%s"' % (xrefpath_filename)
+                '\n"%s"' % (xref_filepath) +
+                '\n"%s"' % (xref_objectname)   
                 )
 
             if len(obj.data.materials) == 0:
@@ -349,8 +349,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             file.write(
                 '\n\n;OBJECT %s' %  (object_list.index(obj)) +
                 '\n\"%s\"' % (obj.ass.Type) +
-                '\n"%s"' % (xrefpath) +
-                '\n"%s"' % (xrefpath_filename)
+                '\n"%s"' % (xref_filepath) +
+                '\n"%s"' % (xref_objectname)   
                 )
 
             if len(obj.data.materials) == 0:
@@ -370,8 +370,8 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             file.write(
                 '\n\n;OBJECT %s' %  (object_list.index(obj)) +
                 '\n\"%s\"' % (obj.ass.Type) +
-                '\n"%s"' % (xrefpath) +
-                '\n"%s"' % (xrefpath_filename) 
+                '\n"%s"' % (xref_filepath) +
+                '\n"%s"' % (xref_objectname)   
                 )
 
             if len(obj.data.materials) == 0:
