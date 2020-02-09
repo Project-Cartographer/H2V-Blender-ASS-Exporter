@@ -383,7 +383,7 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
             file.write('\n{0:0.10f}'.format(obj.dimensions[2]/2))
             file.write('\n{0:0.10f}'.format(obj.dimensions[1]/2))
 
-    #object_list.remove(object_list[0])
+    object_list.remove(object_list[0])
     objects_to_be_removed = []
 
     #write object instances
@@ -454,9 +454,9 @@ def write_asset(context, filepath, triangulate_faces, split_flat):
     for obj in objects_to_be_removed:
         obj.select_set(True)
         bpy.ops.object.delete()
-    #blevelroot = bpy.data.objects['b_levelroot_blend2h2export']
-    #blevelroot.select_set(state = True)
-    #bpy.ops.object.delete()
+    blevelroot = bpy.data.objects['b_levelroot_blend2h2export']
+    blevelroot.select_set(state = True)
+    bpy.ops.object.delete()
     file.close()
     return {'FINISHED'}
 
