@@ -144,8 +144,8 @@ def unhide_all_objects():
         if obj.hide_viewport:
             obj.hide_viewport = False
 
-        if obj.hide_render:
-            obj.hide_render = False
+        #if obj.hide_render:
+            #obj.hide_render = False
 
 def mesh_tools(obj, triangulate, split):
     print('PRE-DUPLICATE OBJECT: ' + obj.name)
